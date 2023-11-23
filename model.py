@@ -25,8 +25,15 @@ class pg_model:
         output = tf.keras.layers.Dense(3,activation=output_activation)(x)
         self.model = tf.keras.models.Model(inputs=input,outputs=output) 
         
-    def init_optimizer(self,learning_rate=1e-4):    
-        self.optimizer =  tf.keras.optimizers.SGD(learning_rate)
+    def init_optimizer(self,learning_rate=1e-2):    
+        initial_learning_rate = learning_rate
+        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        initial_learning_rate,
+        decay_steps=1000,
+        decay_rate=0.5,
+        staircase=True)
+
+        self.optimizer =  tf.keras.optimizers.SGD(lr_schedule)
     def update(self,states,actions,rewards,auto_save=False,output_path='C:',old_model=None,discount_factor=0.9):
         rewards = rewards.numpy()
         i = len(rewards)-2
