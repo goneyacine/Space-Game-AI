@@ -4,7 +4,7 @@ import tensorflow_probability as tfp
 import numpy as np
 class pg_model:
     #max_obsticals_count refers to the max number of obsticals the model can observe and it defines the number of inputs in the layer
-    def __init__(self,lr=1e-1,batch_norm=False,max_obsticals_count=20,activation='relu',load_from_disk = False,model_path='model.keras',output_activation='softmax',learning_rate=1e-4) -> None:
+    def __init__(self,lr=1e-3,batch_norm=False,max_obsticals_count=20,activation='relu',load_from_disk = False,model_path='model.keras',output_activation='softmax',learning_rate=1e-4) -> None:
         self.lr = lr
         self.max_obsticals_count = max_obsticals_count
         if not load_from_disk:
@@ -27,34 +27,47 @@ class pg_model:
         
     def init_optimizer(self,learning_rate=1e-4):    
         self.optimizer =  tf.keras.optimizers.SGD(learning_rate)
-    def update(self,states,actions,rewards,auto_save=False,output_path='model.keras'):
-        
-        for state,reward, action in zip(states,rewards, actions):
-         with tf.GradientTape() as tape:
-           p = self.model(state.reshape(1,-1),training=True)
+    def update(self,states,actions,rewards,auto_save=False,output_path='C:',old_model=None,discount_factor=0.9):
+        rewards = rewards.numpy()
+        i = len(rewards)-2
+        while(i > 0):
+            rewards[i] = rewards[i+1] * discount_factor
+            print(reward[i])
+            i -=1
+        rewards = tf.convert_to_tensor(rewards)        
+        @tf.function
+        def step(state,action,reward,old_model=None):
+          with tf.GradientTape() as tape:
+           if(old_model == None):
+               old_model = self.model
+           p = old_model(state,training=True)
            dist = tfp.distributions.Categorical(p)
            log_prob = dist.log_prob(action)
            loss = -log_prob*reward
-           gradients = tape.gradient(loss, self.model.trainable_variables)
-         self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+          gradients = tape.gradient(loss, self.model.trainable_variables)
+          self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+        
+        for state,reward, action in zip(states,rewards, actions):
+            state = state.reshape(1,-1)
+            step(state=state,reward=reward,action=action,old_model=old_model)
         if auto_save:
-            self.save(output_path=output_path)
-             
-    def compute_reward(self,state,action,previous_reward,discount_factor=0.6,hit=False):
-        reward = previous_reward * discount_factor
+            self.save(output_path=os.path.join(output_path,'model.keras'))
+    #computes the imediate reward         
+    def compute_reward(self,state,action,screen_size=500,obsticals_count=20,hit=False):
+        reward = .3
         if hit:
             reward = -10
             return reward
         if action!= 0:
-           reward -= 0.4
+           reward -= 0.04
         for i in range(self.max_obsticals_count):
             player_x_pos = state[0]
             obstical_x_pos = state[i*2 +1]
             obstical_y_pos = state[i*2 +2]
-            a = obstical_y_pos ** 2 * 10
-            b = abs(obstical_x_pos - player_x_pos) - 1
-            reward += a * b
-        return reward
+            a = ((abs(obstical_x_pos - player_x_pos)) / screen_size)**3 - 0.13
+            b = -((obstical_y_pos - (screen_size/2)) / screen_size)**3
+            reward += a + b 
+        return reward / obsticals_count *100
     def save(self,output_path='model.keras'):
          if not os.path.exists(output_path):
             os.mkdir(output_path)
