@@ -1,0 +1,45 @@
+{
+    "os": "Windows-10-10.0.19044-SP0",
+    "python": "3.10.8",
+    "heartbeatAt": "2023-11-23T11:02:30.940191",
+    "startedAt": "2023-11-23T11:02:29.651104",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "D:\\Dev\\AI Projects\\Space Game AI\\game.py",
+    "codePathLocal": "game.py",
+    "codePath": "game.py",
+    "git": {
+        "remote": "https://github.com/goneyacine/Space-Game-AI.git",
+        "commit": "f7300f40d013701b0835568512f0137bf128a8e4"
+    },
+    "email": "goneyacine@gmail.com",
+    "root": "D:/Dev/AI Projects/Space Game AI",
+    "host": "LAPTOP-33QS219R",
+    "username": "TMAX27",
+    "executable": "d:\\Dev\\AI Projects\\Space Game AI\\.venv\\Scripts\\python.exe",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 1400.0,
+        "min": 0.0,
+        "max": 2100.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1400.0,
+            "min": 0.0,
+            "max": 2100.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 142.85937118530273,
+            "used": 75.39617156982422
+        }
+    },
+    "memory": {
+        "total": 6.937145233154297
+    }
+}

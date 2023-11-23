@@ -6,6 +6,20 @@ import numpy as np
 import tensorflow as tf
 import model
 import tensorflow_probability as tfp
+import wandb
+
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="Space Game AI",
+    
+    # track hyperparameters and run metadata
+    config={
+         'discount factor':0.9,
+          'episodes steps':100
+    }
+)
+
+config = wandb.config
 
 MAX_OBSTICALS = 20
 PLAYER_POS_RANGE = (20,480) 
@@ -16,6 +30,7 @@ OBSTICAL_MIN_SPEED = 0.05
 OBSTICAL_SIZE = 10
 PLAYER_SIZE = 15
 PLAYER_SPEED = .5
+max_score = 0
 
 def render(screen,obsticals,player_pos):
   screen.fill((50, 30, 30))
@@ -58,6 +73,7 @@ def check_collisions(obsticals,player_pos):
           return True
      return False
 def start_game():
+ score = 0
  pg_model = model.pg_model()
  screen = pygame.display.set_mode([500, 500])
  player_pos = [200,450]
@@ -68,9 +84,13 @@ def start_game():
  states = []
  actions = []
  episodes = []
+ global max_score
  rewards = tf.constant([], dtype=tf.float32)
- font = pygame.font.SysFont('arial', 30)
+ font = pygame.font.SysFont('arial', 20)
  while running and not restart:
+  score += 1e-2
+  if score > max_score:
+   max_score = score
   for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -89,17 +109,21 @@ def start_game():
   render(player_pos=player_pos,obsticals=obsticals,screen=screen)
  
   
-  pygame.display.flip()
   new_state = get_state(player_pos=player_pos,obsticals=obsticals)
   if(len(old_state) > 0):
    actions.append(action)
    states.append(old_state)
    reward = pg_model.compute_reward(state=new_state,action=action,obsticals_count=MAX_OBSTICALS)
-   text_surface = font.render(str(reward), True, (0, 255, 255)) 
+   text_surface = font.render( "immediate reward " + str(int(reward)), True, (0, 255, 0)) 
+   screen.blit(text_surface,(10,10))
+   text_surface = font.render( "score " + str(int(score)), True, (0, 255, 0)) 
+   screen.blit(text_surface,(10,30))
+   text_surface = font.render( "max score " + str(int(max_score)), True, (0, 255, 0)) 
+   screen.blit(text_surface,(10,50))
    reward =  tf.constant([reward ],dtype=tf.float32)
-   screen.blit(text_surface,(100,100))
    rewards = tf.concat([rewards, reward], axis=0)
    steps_count += 1
+   pygame.display.flip()
    if(steps_count >= 100):
     #pg_model.update(states=states,actions=actions,rewards=rewards)
     episodes.append({'states':states,'actions':actions,'rewards':rewards})
@@ -110,6 +134,7 @@ def start_game():
  if not running:
   pygame.quit()
  elif restart :
+     wandb.log({"score":score})
      old_model = pg_model.model
      episodes.append({'states':states,'actions':actions,'rewards':rewards})
      for episode in episodes:
