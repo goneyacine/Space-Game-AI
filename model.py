@@ -16,7 +16,7 @@ class pg_model:
     #max_obsticals_count refers to the max number of obsticals the model can observe and it defines the number of inputs in the layer    
     def __init_model__(self,batch_norm=False,max_obsticals_count=5,activation='relu',output_activation='softmax'):
         input = tf.keras.Input(max_obsticals_count * 2 + 1)
-        x = tf.keras.layers.Dense(64,activation=activation)(input)
+        x = tf.keras.layers.Dense(64,activation='linear')(input)
         if batch_norm:
          x = tf.keras.layers.BatchNormalization()(x)
         x = tf.keras.layers.Dense(32,activation=activation)(x)
@@ -34,7 +34,7 @@ class pg_model:
         staircase=True)
 
         self.optimizer =  tf.keras.optimizers.SGD(lr_schedule)
-    def update(self,states,actions,rewards,auto_save=False,output_path='C:',old_model=None,discount_factor=0.9):
+    def update(self,states,actions,rewards,auto_save=True,output_path='./model.keras',old_model=None,discount_factor=0.9):
         rewards = rewards.numpy()
         i = len(rewards)-2
         while(i > 0):
@@ -58,7 +58,7 @@ class pg_model:
             state = state.reshape(1,-1)
             step(state=state,reward=reward,action=action,old_model=old_model)
         if auto_save:
-            self.save(output_path=os.path.join(output_path,'model.keras'))
+            self.save(output_path=output_path)
     #computes the imediate reward         
     def compute_reward(self,state,action,screen_size=500,obsticals_count=20,hit=False):
         reward = .3
@@ -76,8 +76,6 @@ class pg_model:
             reward += a + b 
         return reward / obsticals_count *100
     def save(self,output_path='model.keras'):
-         if not os.path.exists(output_path):
-            os.mkdir(output_path)
          self.model.save(output_path)
     def load(self,model_path='model.keras'):
         self.model = tf.keras.models.load_model(model_path)

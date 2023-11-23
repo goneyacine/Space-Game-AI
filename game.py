@@ -47,10 +47,10 @@ def call_model(model,state):
    action = dist.sample()[0].numpy()    
    return action
 def get_state(player_pos,obsticals):
-  state= np.array([player_pos[0]])
+  state= np.array([player_pos[0]-250])
   if(len(obsticals) > 0):
    for obstical in obsticals:
-        state = np.append(state,[obstical[0],obstical[1]])
+        state = np.append(state,[obstical[0]-250,obstical[1]-250])
    return state
 def check_collisions(obsticals,player_pos):
      for obstical in obsticals:
