@@ -31,8 +31,8 @@ class pg_model:
         rewards = rewards.numpy()
         i = len(rewards)-2
         while(i > 0):
-            rewards[i] = rewards[i+1] * discount_factor
-            print(reward[i])
+            rewards[i] += rewards[i+1] * discount_factor
+            print(rewards[i])
             i -=1
         rewards = tf.convert_to_tensor(rewards)        
         @tf.function

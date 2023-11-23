@@ -95,7 +95,6 @@ def start_game():
    actions.append(action)
    states.append(old_state)
    reward = pg_model.compute_reward(state=new_state,action=action,obsticals_count=MAX_OBSTICALS)
-   print(reward)
    text_surface = font.render(str(reward), True, (0, 255, 255)) 
    reward =  tf.constant([reward ],dtype=tf.float32)
    screen.blit(text_surface,(100,100))
